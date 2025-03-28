@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="4ac68952-7fdf-4603-b105-3dad169a9d88" name="CoVR_autodl">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="root@connect.cqa1.seetacloud.com" port="17964" sshConfigId="6bab5123-d573-4188-b7aa-b78cc2f7ed24" sshConfig="root@root@connect.cqa1.seetacloud.com:17964 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
