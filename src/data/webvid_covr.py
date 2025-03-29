@@ -207,6 +207,27 @@ class WebVidCoVRDataset(Dataset):
         assert len(id2vidpth) > 0, f"No videos found in {vid_dir}"
         assert len(id2embpth) > 0, f"No embeddings found in {emb_dir}"
 
+
+        # 改动
+        # 我先手动跳过缺失的条目------------------------------------------------------
+        vid_pths = self.vid_dir.glob("*/*.mp4")
+        # Ensure id2vidpth is not empty
+        assert len(id2vidpth) > 0, f"No video paths found in {self.vid_dir}"
+        # Safely apply mapping to create path1
+        self.df["path1"] = self.df["pth1"].apply(lambda x: id2vidpth.get(x, None))
+        # Filter and reset index for missing paths
+        self.df = self.df[self.df["path1"].notna()].reset_index(drop=True)
+        # Create path2 mapping
+        emb_pths = self.emb_dir.glob("*/*.pth")
+        id2embpth = {emb_pth.parent.stem + "/" + emb_pth.stem: emb_pth for emb_pth in emb_pths}
+        # Safely apply mapping to create path2
+        self.df["path2"] = self.df["pth2"].apply(lambda x: id2embpth.get(x, None))
+        # Filter and reset index for missing path2 entries
+        self.df = self.df[self.df["path2"].notna()].reset_index(drop=True)
+
+        #------------------------------------------------------------------------------------
+
+
         self.df["path1"] = self.df["pth1"].apply(lambda x: id2vidpth.get(x, None))  # type: ignore
         self.df["path2"] = self.df["pth2"].apply(lambda x: id2embpth.get(x, None))  # type: ignore
 
