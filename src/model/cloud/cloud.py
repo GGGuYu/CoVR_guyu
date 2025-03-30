@@ -3,6 +3,7 @@ import torch
 
 class Cloud:
     def __init__(self , x:torch.Tensor , dim:int , num:int):
+        self.eps = 1e-6
         self.x = x
         self.dim = dim
         self.num = num
@@ -11,7 +12,10 @@ class Cloud:
         self.en = en
         self.he = he
         new_x , enn = reparameterize(ex,en,he)
-        self.new_x = new_x
+        x_mean = torch.mean(self.x, dim=-1, keepdim=False)
+        x_std = torch.sqrt(torch.var(self.x, dim=-1, keepdim=False) + self.eps)
+        normal_x = (self.x - x_mean.unsqueeze(dim=1)) / x_std.unsqueeze(dim=1)
+        self.new_x = enn * normal_x + new_x
         self.enn = enn
 
     def get_cloud(self) -> torch.Tensor:
@@ -26,6 +30,6 @@ class Cloud:
 
 if __name__ == "__main__":
     x = torch.randn(32, 512)
-    cloud = Cloud(x, 0)
+    cloud = Cloud(x, 0 ,x.shape[0])
     x = cloud.get_cloud()
     print(f'x.shape: {x.shape}')

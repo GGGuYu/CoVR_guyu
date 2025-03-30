@@ -4,6 +4,6 @@ launching
 annotation/
 .vscode/
 bert-base-uncased/
-
+.lingma
 delete*
 __pycache__/
