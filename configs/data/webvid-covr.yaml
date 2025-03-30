@@ -8,6 +8,7 @@ vid_frames: 1
 emb_pool: query
 n_embs: 15
 si_tc_weight: ${model.loss_terms.si_tc_weight}
+pin_memory: False  #因为有个位数的损坏数据，导致我不得不关闭，很烦！之后再处理那几个损坏的
 
 batch_size: ${machine.batch_size}
 num_workers: ${machine.num_workers}
