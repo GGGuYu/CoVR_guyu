@@ -13,6 +13,7 @@ from src.data.utils import FrameLoader, id2int, pre_caption
 from src.tools.files import write_txt
 from src.tools.utils import print_dist
 from src.data.my_utils import load_target_embedding
+from src.data.my_utils import collate_fn
 
 Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombWarning
 
@@ -87,6 +88,7 @@ class WebVidCoVRDataModule(LightningDataModule):
             dataset=self.data_train,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            collate_fn=collate_fn,
             pin_memory=self.pin_memory,
             shuffle=True,
             drop_last=True,
@@ -97,6 +99,7 @@ class WebVidCoVRDataModule(LightningDataModule):
             dataset=self.data_val,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            collate_fn=collate_fn,
             pin_memory=self.pin_memory,
             shuffle=False,
             drop_last=False,
@@ -151,6 +154,7 @@ class WebVidCoVRTestDataModule(LightningDataModule):
             dataset=self.data_test,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            collate_fn=collate_fn,
             pin_memory=self.pin_memory,
             shuffle=False,
             drop_last=False,
@@ -374,20 +378,21 @@ class WebVidCoVRDataset(Dataset):
         # Get target embeddings
         target_pth = str(ann["path2"])
         # target_emb = torch.load(target_pth, weights_only=True).cpu().to(torch.float32)
-        # -----------------------------------------------------------
-        # 改动，替换成我的加载方式，方便调试
+        #-----------------------------------------------------------
+        #改动，替换成我的加载方式，方便调试
         # target_emb = torch.load(target_pth, weights_only=True).cpu().to(torch.float32)
         target_emb = load_target_embedding(target_pth)
-        # 我发现有极少数损坏文件，应该是我计算的时候几次中断导致的
-        # 但是应该只有个位数，并不影响实验结果，因此我打算设法先跳过这些样本
-        # 之后再来处理 todo
+        #我发现有极少数损坏文件，应该是我计算的时候几次中断导致的
+        #但是应该只有个位数，并不影响实验结果，因此我打算设法先跳过这些样本
+        #之后再来处理 todo
         if target_emb is None:
-            # 如果加载失败，递归调用 __getitem__，尝试加载下一个样本
-            # 这里相当于下一个样本会加载两次
+            # 如果加载失败，直接return None交给collate_fn函数去处理
             print(f"跳过了样本: {target_pth}")
-            return self.__getitem__((index + 1) % len(self.target_txts))
-        # 我认为这样应该不会有大问题，因为只有个位数的损坏文件
-        # 但是DS建议我用
+            return None
+        #我认为这样应该不会有大问题，因为只有个位数的损坏文件
+        #为了解决这个问题我还关闭了pin_memory=False(补了一个配置在配置文件)
+        #速度变慢了，但是似乎能跑了
+        #DS建议我用的就是这个方法，以下是说明
         # 自定义 collate_fn
         # def collate_fn(batch):
         #     # 过滤无效样本
@@ -396,7 +401,7 @@ class WebVidCoVRDataset(Dataset):
         #         return None
         #     # 默认的堆叠方法（适用于张量）
         #     return torch.utils.data.dataloader.default_collate(batch)
-        # 然后在初始化的时候传入
+        #然后在初始化的时候传入
         # dataloader = DataLoader(
         #     dataset,
         #     batch_size=32,
@@ -405,8 +410,7 @@ class WebVidCoVRDataset(Dataset):
         #     drop_last=True,
         #     num_workers=4,
         # )
-        # 这种方式似乎解决更好，但是不管了，先这样吧
-        # ------------------------------------------------------------
+        #------------------------------------------------------------
         if self.emb_pool == "middle":
             return_dict["tar_img_feat"] = target_emb[len(target_emb) // 2]
             return return_dict

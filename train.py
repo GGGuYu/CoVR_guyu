@@ -91,6 +91,8 @@ def train(model, train_loader, optimizer, fabric, epoch, cfg):
     model.train()
 
     for batch_idx, batch in enumerate(train_loader):
+        if batch == None:
+            continue
         optimizer.zero_grad()
         loss = model(batch, fabric)
         fabric.backward(loss)

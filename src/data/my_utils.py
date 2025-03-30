@@ -17,6 +17,17 @@ def load_target_embedding(target_pth):
         return None
 
 
+# 自定义collate_fn
+def collate_fn(batch):
+    # 过滤掉所有无效样本（None）
+    batch = [item for item in batch if item is not None]
+
+    # 如果过滤后批次为空，返回 None（需配合 DataLoader 的 drop_last=True）
+    if len(batch) == 0:
+        return None
+
+    # 将有效样本组合成张量
+    return torch.utils.data.dataloader.default_collate(batch)
 
 #调试哪些文件损坏了
 if __name__ == "__main__":
