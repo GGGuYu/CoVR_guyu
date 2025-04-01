@@ -99,7 +99,7 @@ class CloudHardNegativeNCE(nn.Module):
         Note:
             alpha = 1 and beta = 0 corresponds to the original Info-NCE loss
         """
-        super(HardNegativeNCE, self).__init__()
+        super(CloudHardNegativeNCE, self).__init__()
         self.alpha = alpha
         self.beta = beta
 
