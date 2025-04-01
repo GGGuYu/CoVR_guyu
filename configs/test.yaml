@@ -13,11 +13,11 @@ logger_level: INFO
 # Composing nested config with default
 defaults:
   - _self_
-  - data: cirr
-  - test: all
+  - data: webvid-covr
+  - test: webvid-covr
   - machine: server
   - trainer: gpu
-  - model: blip-large
+  - model: blip2-coco
   - model/ckpt: blip-l-coco
   - model/loss: hn_nce # not used
   - model/loss_terms: si_ti # not used

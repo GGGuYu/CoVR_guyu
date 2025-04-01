@@ -17,13 +17,13 @@ defaults:
   - data: webvid-covr
   - machine: server
   - trainer: gpu
-  - test: all
+  - test: webvid-covr
   - trainer/logger: csv
-  - model: blip-large
+  - model: blip2-coco
   - model/optimizer: adamw
   - model/scheduler: cosine
-  - model/loss: hn_nce
-  - model/ckpt: blip-l-coco
+  - model/loss: cloud_hn_nce
+  - model/ckpt: blip2-l-coco
   - model/loss_terms: si_ti
 
   - experiment: null

@@ -1,0 +1,5 @@
+_target_: src.model.blip.loss.CloudHardNegativeNCE
+name: cloud_hn_nce
+
+alpha: 1
+beta: 0.5

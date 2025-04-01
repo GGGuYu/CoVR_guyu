@@ -1,19 +1,24 @@
 import torch
 import math
 
-
+#正向云
 def reparameterize(ex, en, he):
-    enn_0 = torch.exp(he / 2)
+    # enn_0 = torch.exp(he / 2)
+    enn_0 = he
     enn_norm = torch.randn_like(enn_0)  # 返回一个与输入相同大小的张量，该张量由均值为0、方差为1的正态分布的随机数填充。
     enn = en + enn_norm * enn_0
 
-    enn_1 = torch.exp(enn / 2)
+    # enn_1 = torch.exp(enn / 2)
+    enn_1 = enn
     x_norm = torch.randn_like(enn_1)  # 返回一个与输入相同大小的张量，该张量由均值为0、方差为1的正态分布的随机数填充。
     x = ex + x_norm * enn_1
 
-    return x, enn
+    # 计算隶属度 μ = exp(-(x - Ex)^2 / (2 * En^2))
+    mu = torch.exp(-torch.pow(x - ex, 2) / (2 * torch.pow(enn, 2)))
 
+    return x, enn, mu  # 现在返回三个值：x, enn和隶属度mu
 
+#逆向云
 def getEX_EN_HE_dim_direction(x, dim, num):
     """
     沿批次维度（第0维）计算每个特征维度的云参数
@@ -37,10 +42,8 @@ def getEX_EN_HE_dim_direction(x, dim, num):
 
     return ex, en, he
 
-
 def expand_dim(ex, en, he, dim, num):
     return expand_sigle(ex, dim, num), expand_sigle(en, dim, num), expand_sigle(he, dim, num)
-
 
 def expand_single(x, dim, num):
     """

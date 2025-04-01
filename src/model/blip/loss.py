@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from src.model.cloud.cloud import Cloud
 
 class CrossEntropyLoss(nn.Module):
     """
@@ -85,3 +85,70 @@ class HardNegativeNCE(nn.Module):
             denominator_t2v - nominator
         ).mean()
         return hn_nce_loss
+
+
+
+#云模型 + 硬负对比损失
+class CloudHardNegativeNCE(nn.Module):
+    def __init__(self, alpha: float = 1.0, beta: float = 0.0, **kwargs):
+        """
+        Args:
+            alpha: rescaling factor for positiver terms
+            beta: concentration parameter
+
+        Note:
+            alpha = 1 and beta = 0 corresponds to the original Info-NCE loss
+        """
+        super(HardNegativeNCE, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
+
+    def forward(
+        self,
+        video_embds: torch.Tensor,
+        text_embds: torch.Tensor,
+        temp,
+    ):
+        """
+        Args:
+            video_embds: (batch_size, video_embd_dim)
+            text_embds: (batch_size, text_embd_dim)
+        """
+        batch_size = video_embds.size(0)
+        #改动
+        #------------------------------------------------------
+        #云模型
+        Cloud(text_embds, 1 ,text_embds.shape[0])
+        text_embds = Cloud.get_cloud()
+        #------------------------------------------------------
+        # computation of the similarity matrix
+        sim_matrix = video_embds @ text_embds.T  # (batch_size, batch_size)
+        # scale the similarity matrix with the temperature
+        sim_matrix = sim_matrix / temp
+        sim_matrix = sim_matrix.float()
+
+        nominator = torch.diagonal(sim_matrix)
+
+        beta_sim = self.beta * sim_matrix
+        w_v2t = (
+            (batch_size - 1)
+            * torch.exp(beta_sim)
+            / (torch.exp(beta_sim).sum(dim=1) - torch.exp(torch.diagonal(beta_sim)))
+        )
+        w_t2v = (
+            (batch_size - 1)
+            * torch.exp(beta_sim)
+            / (torch.exp(beta_sim).sum(dim=0) - torch.exp(torch.diagonal(beta_sim)))
+        )
+        # replace the diagonal terms of w_v2t and w_t2v with alpha
+        w_v2t[range(batch_size), range(batch_size)] = self.alpha
+        w_t2v[range(batch_size), range(batch_size)] = self.alpha
+
+        denominator_v2t = torch.log((torch.exp(sim_matrix) * w_v2t).sum(dim=1))
+        denominator_t2v = torch.log((torch.exp(sim_matrix) * w_t2v).sum(dim=0))
+
+        hn_nce_loss = (denominator_v2t - nominator).mean() + (
+            denominator_t2v - nominator
+        ).mean()
+        return hn_nce_loss
+

@@ -11,11 +11,12 @@ class Cloud:
         self.ex = ex
         self.en = en
         self.he = he
-        new_x , enn = reparameterize(ex,en,he)
-        x_mean = torch.mean(self.x, dim=-1, keepdim=False)
-        x_std = torch.sqrt(torch.var(self.x, dim=-1, keepdim=False) + self.eps)
-        normal_x = (self.x - x_mean.unsqueeze(dim=1)) / x_std.unsqueeze(dim=1)
-        self.new_x = enn * normal_x + new_x
+        new_x , enn , mu = reparameterize(ex,en,he)
+        x_std = torch.sqrt(torch.var(x, dim=-1, keepdim=False) + self.eps)
+        normal_x = (self.x - ex.unsqueeze(dim=1)) / x_std.unsqueeze(dim=1)
+        new_x = enn * normal_x + new_x
+        sigma = torch.rand_like(x)
+        self.new_x = new_x + sigma * mu
         self.enn = enn
 
     def get_cloud(self) -> torch.Tensor:
