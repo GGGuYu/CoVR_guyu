@@ -18,7 +18,8 @@ defaults:
   - machine: server
   - trainer: gpu
   - model: blip2-coco
-  - model/ckpt: blip-l-coco
+  # - model/ckpt: blip-l-coco
+  - model/ckpt: blip2-l-coco_webvid-covr
   - model/loss: hn_nce # not used
   - model/loss_terms: si_ti # not used
   - trainer/logger: none
