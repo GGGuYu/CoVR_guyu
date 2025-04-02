@@ -118,8 +118,8 @@ class CloudHardNegativeNCE(nn.Module):
         #改动
         #------------------------------------------------------
         #云模型
-        Cloud(text_embds, 1 ,text_embds.shape[0])
-        text_embds = Cloud.get_cloud()
+        cloud = Cloud(text_embds, 1 ,text_embds.shape[1])
+        text_embds = cloud.get_cloud()
         #------------------------------------------------------
         # computation of the similarity matrix
         sim_matrix = video_embds @ text_embds.T  # (batch_size, batch_size)

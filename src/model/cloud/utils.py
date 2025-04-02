@@ -43,7 +43,7 @@ def getEX_EN_HE_dim_direction(x, dim, num):
     return ex, en, he
 
 def expand_dim(ex, en, he, dim, num):
-    return expand_sigle(ex, dim, num), expand_sigle(en, dim, num), expand_sigle(he, dim, num)
+    return expand_single(ex, dim, num), expand_single(en, dim, num), expand_single(he, dim, num)
 
 def expand_single(x, dim, num):
     """
