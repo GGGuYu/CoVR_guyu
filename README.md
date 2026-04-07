@@ -98,93 +98,11 @@ Follow the structure in [CIRCO repository](https://github.com/miccunifi/CIRCO.gi
 
 ## 🚀 Usage
 
-### Step 1: Compute BLIP-2 Embeddings
-
-Before training, pre-compute BLIP-2 embeddings for videos and images:
-
-```bash
-# WebVid-CoVR training videos
-python tools/embs/save_blip2_embs_vids.py \
-    --video_dir datasets/WebVid/2M/train \
-    --todo_ids annotation/webvid-covr/webvid2m-covr_train.csv
-
-# WebVid-CoVR test videos
-python tools/embs/save_blip2_embs_vids.py \
-    --video_dir datasets/WebVid/8M/train \
-    --todo_ids annotation/webvid-covr/webvid8m-covr_test.csv
-
-# CIRR images
-python tools/embs/save_blip2_embs_imgs.py \
-    --image_dir datasets/CIRR/images/test1 \
-    --save_dir datasets/CIRR/blip2-embs-large/test1
-python tools/embs/save_blip2_embs_imgs.py \
-    --image_dir datasets/CIRR/images/dev \
-    --save_dir datasets/CIRR/blip2-embs-large/dev
-python tools/embs/save_blip2_embs_imgs.py \
-    --image_dir datasets/CIRR/images/train \
-    --save_dir datasets/CIRR/blip2-embs-large/train
-
-# FashionIQ images
-python tools/embs/save_blip2_embs_imgs.py \
-    --image_dir datasets/fashion-iq/images/
-```
-
-**Note**: Use `--num_shards` and `--shard_id` for multi-GPU processing.
-
-### Step 2: Training
-
-Launch training with Hydra configuration:
-
-```bash
-python train.py [OPTIONS]
-```
-
-**Example - Train on WebVid-CoVR**:
-```bash
-python train.py \
-    data=webvid-covr \
-    model=blip2-coco \
-    model/ckpt=blip2-l-coco \
-    trainer=gpu \
-    trainer.devices=1
-```
-
-**Key Parameters**:
-- `data=webvid-covr`: WebVid-CoVR dataset
-- `model=blip2-coco`: BLIP-2 model with Q-SlotSelect
-- `trainer=gpu`: Single GPU training
-- `trainer=ddp`: Distributed Data Parallel (multi-GPU)
-
-### Step 3: Evaluation
-
-```bash
-python test.py test=<test> [OPTIONS]
-```
-
-**Example - Evaluate on all benchmarks**:
-```bash
-python test.py test=all
-```
-
-**Available test sets**:
-- `test=webvid-covr`: WebVid-CoVR test set
-- `test=cirr`: CIRR test set
-- `test=fashioniq`: FashionIQ (dress, shirt, toptee)
-- `test=circo`: CIRCO test set
-- `test=all`: All benchmarks
-
-### Configuration Options
-
-**Models**:
-- `model=blip2-coco`: BLIP-2 with Q-SlotSelect module
-
-**Checkpoints**:
-- `model/ckpt=blip2-l-coco`: BLIP-2 Large pretrained on COCO
-- `model/ckpt=blip2-l-coco_webvid-covr`: Finetuned on WebVid-CoVR with Q-SlotSelect
-
-**Loss Functions**:
-- HN-NCE (Hard Negative Noise Contrastive Estimation) with temperature τ=0.07
-- Attention entropy regularization (λ=0.2)
+<!-- 
+TODO: Add usage instructions
+This section is intentionally left blank for the author to complete.
+Please add training and evaluation commands after finalizing the implementation.
+-->
 
 ## 📈 Results
 
@@ -205,19 +123,24 @@ python test.py test=all
 
 | Category | R@10 | R@50 |
 |----------|------|------|
-| Dress | TBD | TBD |
-| Shirt | TBD | TBD |
-| Toptee | TBD | TBD |
-| **Average** | **TBD** | **TBD** |
+| Dress | 50.62 | 72.63 |
+| Shirt | 55.00 | 73.31 |
+| Toptee | 57.06 | 77.77 |
+| **Average** | **54.23** | **74.57** |
+
+**Improvement**: +5.37% Average R@10 over CoVR-BLIP2 baseline (48.86 → 54.23)
 
 ### CIRR (Zero-shot)
 
-| Metric | Value |
-|--------|-------|
-| R@1 | TBD |
-| R@5 | TBD |
-| R@10 | TBD |
-| R@50 | TBD |
+| Recall@K | R@1 | R@5 | R@10 | R@50 |
+|----------|-----|-----|------|------|
+| Full Set | 52.10 | 81.78 | 89.61 | 97.93 |
+
+| R(subset)@K | R@1 | R@2 | R@3 |
+|-------------|-----|-----|-----|
+| Subset | 78.79 | 91.16 | 96.48 |
+
+**Improvement**: +1.23% R@1 and +2.09% R(subset)@1 over CoVR-BLIP2 baseline
 
 ## 🔬 Key Findings
 
@@ -250,17 +173,11 @@ CoVR/
 
 ## 📝 Citation
 
-If you use this code in your research, please cite:
-
-```bibtex
-@article{qslotselect2026,
-  title={Q-SlotSelect: Query-Guided Slot Selection with Top-K Semantic Filtering},
-  author={Zeng, XianHua and Yang, Guyu and Tan, RuiYao},
-  journal={Nuclear Physics B},
-  year={2026},
-  publisher={Elsevier}
-}
-```
+<!-- 
+TODO: Add citation information
+This section is intentionally left blank for the author to complete.
+Please add proper BibTeX citation after the paper is officially published.
+-->
 
 ## 🙏 Acknowledgements
 
