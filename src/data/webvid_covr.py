@@ -12,6 +12,8 @@ from src.data.transforms import transform_test, transform_train
 from src.data.utils import FrameLoader, id2int, pre_caption
 from src.tools.files import write_txt
 from src.tools.utils import print_dist
+from src.data.my_utils import load_target_embedding
+from src.data.my_utils import collate_fn
 
 Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombWarning
 
@@ -21,7 +23,7 @@ class WebVidCoVRDataModule(LightningDataModule):
         self,
         batch_size: int,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         annotation: dict = {"train": "", "val": ""},
         vid_dirs: dict = {"train": "", "val": ""},
         emb_dirs: dict = {"train": "", "val": ""},
@@ -87,6 +89,7 @@ class WebVidCoVRDataModule(LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
+            collate_fn=collate_fn,
             shuffle=True,
             drop_last=True,
         )
@@ -97,6 +100,7 @@ class WebVidCoVRDataModule(LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
+            collate_fn=collate_fn,
             shuffle=False,
             drop_last=False,
         )
@@ -110,7 +114,7 @@ class WebVidCoVRTestDataModule(LightningDataModule):
         vid_dirs: str,
         emb_dirs: str,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         image_size: int = 384,
         emb_pool: str = "query",
         n_embs: int = 15,
@@ -151,6 +155,7 @@ class WebVidCoVRTestDataModule(LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
+            collate_fn=collate_fn,
             shuffle=False,
             drop_last=False,
         )
@@ -207,6 +212,26 @@ class WebVidCoVRDataset(Dataset):
         assert len(id2vidpth) > 0, f"No videos found in {vid_dir}"
         assert len(id2embpth) > 0, f"No embeddings found in {emb_dir}"
 
+        # 改动
+        # 我先手动跳过缺失的条目------------------------------------------------------
+        vid_pths = self.vid_dir.glob("*/*.mp4")
+        # Ensure id2vidpth is not empty
+        assert len(id2vidpth) > 0, f"No video paths found in {self.vid_dir}"
+        # Safely apply mapping to create path1
+        self.df["path1"] = self.df["pth1"].apply(lambda x: id2vidpth.get(x, None))
+        # Filter and reset index for missing paths
+        self.df = self.df[self.df["path1"].notna()].reset_index(drop=True)
+        # Create path2 mapping
+        emb_pths = self.emb_dir.glob("*/*.pth")
+        id2embpth = {emb_pth.parent.stem + "/" + emb_pth.stem: emb_pth for emb_pth in emb_pths}
+        # Safely apply mapping to create path2
+        self.df["path2"] = self.df["pth2"].apply(lambda x: id2embpth.get(x, None))
+        # Filter and reset index for missing path2 entries
+        self.df = self.df[self.df["path2"].notna()].reset_index(drop=True)
+
+        #------------------------------------------------------------------------------------
+
+
         self.df["path1"] = self.df["pth1"].apply(lambda x: id2vidpth.get(x, None))  # type: ignore
         self.df["path2"] = self.df["pth2"].apply(lambda x: id2embpth.get(x, None))  # type: ignore
 
@@ -242,6 +267,7 @@ class WebVidCoVRDataset(Dataset):
         self.df = self.df[self.df["path1"].notna()]
         self.df = self.df[self.df["path2"].notna()]
         self.df.reset_index(drop=True, inplace=True)
+
 
         self.max_words = max_words
 
@@ -328,6 +354,7 @@ class WebVidCoVRDataset(Dataset):
     def __len__(self) -> int:
         return len(self.target_txts)
 
+
     def __getitem__(self, index):
         target_txt = self.target_txts[index]
         ann = self.df.loc[target_txt]
@@ -339,19 +366,56 @@ class WebVidCoVRDataset(Dataset):
         reference_vid = self.frame_loader(reference_pth)
 
         caption = pre_caption(ann["edit"], self.max_words)
-
+        #改动3 利用标题
+        #------------------------------------------------------
+        txt1 = pre_caption(ann["txt1"] , self.max_words)
+        txt2 = pre_caption(ann["txt2"] , self.max_words)
         return_dict = {
             "ref_img": reference_vid,
             "edit": caption,
             "pair_id": index,
+            "txt1" : txt1, #txt1和2是我新加的
+            "txt2" : txt2,
         }
-
+        #-------------------------------------------------------------
         if self.txt2emb is not None:
             return_dict["tar_txt_feat"] = self.txt2emb[ann["txt2"]]
 
         # Get target embeddings
         target_pth = str(ann["path2"])
-        target_emb = torch.load(target_pth, weights_only=True).cpu().to(torch.float32)
+        #-----------------------------------------------------------
+        #改动，替换成我的加载方式，方便调试
+        # target_emb = torch.load(target_pth, weights_only=True).cpu().to(torch.float32)
+        target_emb = load_target_embedding(target_pth)
+        #我发现有极少数损坏文件，应该是我计算的时候几次中断导致的
+        #但是应该只有个位数，并不影响实验结果，因此我打算设法先跳过这些样本
+        #之后再来处理 todo
+        if target_emb is None:
+            # 如果加载失败，直接return None交给collate_fn函数去处理
+            print(f"跳过了样本: {target_pth}")
+            return None
+        #我认为这样应该不会有大问题，因为只有个位数的损坏文件
+        #DS建议我用的就是这个方法，以下是说明
+        #为了解决这个问题我还关闭了pin_memory=False(补了一个配置在配置文件)
+        #速度变慢了，但是似乎能跑了
+        # 自定义 collate_fn
+        # def collate_fn(batch):
+        #     # 过滤无效样本
+        #     batch = [item for item in batch if item is not None]
+        #     if len(batch) == 0:
+        #         return None
+        #     # 默认的堆叠方法（适用于张量）
+        #     return torch.utils.data.dataloader.default_collate(batch)
+        #然后在初始化的时候传入
+        # dataloader = DataLoader(
+        #     dataset,
+        #     batch_size=32,
+        #     collate_fn=collate_fn,
+        #     shuffle=True,
+        #     drop_last=True,
+        #     num_workers=4,
+        # )
+        #------------------------------------------------------------
         if self.emb_pool == "middle":
             return_dict["tar_img_feat"] = target_emb[len(target_emb) // 2]
             return return_dict
@@ -387,3 +451,5 @@ class WebVidCoVRDataset(Dataset):
             )
 
         return return_dict
+    
+

@@ -84,7 +84,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--video_dir", type=Path, required=True, help="Path to video directory"
     )
-    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument(
         "--model_type", type=str, default="coco", choices=["coco", "pretrain_vitL"]

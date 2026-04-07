@@ -28,6 +28,7 @@ def main(cfg: DictConfig):
 
         test = instantiate(cfg.test[dataset].test)
         test(model, test_loader, fabric=fabric)
+        # print(f'recalls.get("R1")的样子：{recalls.get("R1")}')
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 dataname: cirr
 _target_: src.data.cirr.CIRRDataModule
-
+pin_memory: False
 # Paths
 dataset_dir: ${paths.datasets_dir}/CIRR
 
@@ -8,15 +8,15 @@ batch_size: ${machine.batch_size}
 num_workers: ${machine.num_workers}
 
 annotation:
-  train: ${paths.work_dir}/annotation/cirr/cap.rc2.train.json
-  val: ${paths.work_dir}/annotation/cirr/cap.rc2.val.json
+  train: /media/bd/PSSD1/datasets/annotation/cirr/cap.rc2.train.json
+  val: /media/bd/PSSD1/datasets/annotation/cirr/cap.rc2.val.json
 
 img_dirs:
-  train: ${data.dataset_dir}/images/train
-  val: ${data.dataset_dir}/images/dev
+  train: /media/bd/PSSD1/datasets/CIRR/images/train
+  val: /media/bd/PSSD1/datasets/CIRR/images/dev
 
 emb_dirs:
-  train: ${data.dataset_dir}/${model.basemodel}-embs-large/train
-  val: ${data.dataset_dir}/${model.basemodel}-embs-large/dev
+  train: /media/bd/PSSD1/datasets/CIRR/blip2-embs-large/train
+  val: /media/bd/PSSD1/datasets/CIRR/blip2-embs-large/dev
 
 image_size: ${model.ckpt.image_size}

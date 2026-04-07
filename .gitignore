@@ -1,9 +1,65 @@
-outputs
-datasets
-launching
+# 模型和训练输出
+outputs/
+datasets/
+launching/
 annotation/
-.vscode/
-bert-base-uncased/
+viz_weights/
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.safetensors
 
-delete*
+# 缓存和临时文件
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 日志文件
+*.log
+logs/
+log/
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统和备份文件
+.DS_Store
+Thumbs.db
+*.bak
+*备份*/
+*backup*/
+
+# 其他临时文件
+delete*
+*.tmp
+.ipynb_checkpoints/
+
+# 大媒体文件（可选）
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wav
+*.mp3

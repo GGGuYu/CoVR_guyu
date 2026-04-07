@@ -8,7 +8,8 @@ import torch
 import torch.nn.functional as F
 
 from src.tools.files import json_dump
-
+from src.model.blip2.xpool_cross_att import Transformer as xpool_cross_att
+from src.model.blip2.xpool_cross_att import sim_matrix_training
 
 class TestEvaluate:
     def __init__(self):
@@ -31,6 +32,11 @@ def evaluate(model, data_loader, fabric):
     query_feats = []
     captions = []
     pair_ids = []
+
+    #特化数据库的指导信息 todo
+    # query_feats_cross = []
+    # add_frame_edits = []
+    # add_frame_imgs = []
 
     for batch in data_loader:
         ref_img = batch["ref_img"]
@@ -71,6 +77,46 @@ def evaluate(model, data_loader, fabric):
         )
         vl_embs = output.last_hidden_state[:, : query_tokens.size(1), :]
         vl_feat = F.normalize(model.text_proj(vl_embs), dim=-1)
+
+        # 改动5
+        #-------------------------------------------------------------------------------------
+        # query_si_feats = vl_feat #我保留一下mean之前的结果
+        # tar_feat = tar_feat.mean(dim=1) #不mean tar_feat,而是拿去做交叉
+        vl_feat = vl_feat.mean(dim=1)
+
+        #开始你的表演---------------------------------
+        query_si_feat = vl_feat
+        
+        # edit_query_embs = model.Qformer.bert(
+        #     text_tokens.input_ids,
+        #     attention_mask=text_tokens.attention_mask,
+        #     return_dict=True,
+        # ) # [bs, 32, 768]
+      
+        # add_frame_edit = edit_query_embs.last_hidden_state[:, 0, :] # 取 [CLS] token #全局特征 [bs, 768]
+        # add_frame_edit = model.cat_proj_1(add_frame_edit) #768变256
+        # add_frame_edits.append(add_frame_edit.cpu())
+        
+
+        # ==========原视频信息 todo=============
+        # add_frame_img = ref_img_embs[:, 0, :] #(bs , 1408)
+        # add_frame_img = model.cat_proj_2(add_frame_img)#(bs,256)
+        # add_frame_imgs.append(add_frame_img.cpu())
+        # =================================
+
+        #cat
+        # combined = torch.cat([query_si_feat, edit_vl_embs], dim=1)
+        # combined = torch.cat([combined, ref_img_embs_cls], dim=1) #1024+1024=2048
+        # combined = model.cat_proj_0(combined) #1024
+        # combined = model.cat_proj_1(combined)#只是用作特化数据库的指导信息，并不是真正的查询
+        # query_si_feat_cross = model.cat_proj_2(combined)
+        # query_feats_cross.append(query_si_feat_cross.cpu())
+
+        vl_feat = query_si_feat
+        #-------------------------------------------------------------------------
+
+        #---------------------------------------------------------------------------------------
+
         query_feats.append(vl_feat.cpu())
 
         # Encode the target image
@@ -78,9 +124,15 @@ def evaluate(model, data_loader, fabric):
 
     query_feats = torch.cat(query_feats, dim=0)
     tar_img_feats = torch.cat(tar_img_feats, dim=0)
+    # query_feats_cross = torch.cat(query_feats_cross, dim=0)
+    # add_frame_imgs = torch.cat(add_frame_imgs , dim=0)
+    # add_frame_edits = torch.cat(add_frame_edits , dim=0)
 
     query_feats = F.normalize(query_feats, dim=-1)
     tar_img_feats = F.normalize(tar_img_feats, dim=-1)
+    # query_feats_cross = F.normalize(query_feats_cross, dim=-1)
+    # add_frame_imgs = F.normalize(add_frame_imgs, dim=-1).unsqueeze(1) #(B,1,D)
+    # add_frame_edits = F.normalize(add_frame_edits, dim=-1).unsqueeze(1) #(B,1,D)
 
     ref_img_ids = [data_loader.dataset.pairid2ref[pair_id] for pair_id in pair_ids]
     tar_img_ids = [data_loader.dataset.pairid2tar[pair_id] for pair_id in pair_ids]
@@ -101,9 +153,24 @@ def evaluate(model, data_loader, fabric):
         tar_img_ids = einops.rearrange(tar_img_ids, "d b -> (d b)")
 
     if fabric.global_rank == 0:
-        tar_img_feats = tar_img_feats.mean(dim=1)
-        query_feats = query_feats.mean(dim=1)
-        sim_q2t = (query_feats @ tar_img_feats.t()).cpu().numpy()
+        # tar_img_feats = tar_img_feats.mean(dim=1)
+        # query_feats = query_feats.mean(dim=1)   #暂时注释，因为我在batch里面处理了32变1
+        #---------------------------------
+        #计算xpool_hn_nce需要的对比矩阵
+        print("计算xpool_hn_nce需要的对比矩阵")
+        # tar_img_feat_add_frame = tar_img_feats.unsqueeze(1) #变成(B , 1 ,dim)
+        # tar_combined = torch.cat([add_frame_imgs,tar_img_feat_add_frame,add_frame_edits], dim=1)
+        original_device = next(model.xpool_cross_att.parameters()).device
+        xpool_cross_att = model.xpool_cross_att
+        xpool_cross_att.cpu()
+        cross_feats = xpool_cross_att(query_feats , tar_img_feats) #交叉结果(B,B,dim)
+        model.xpool_cross_att.to(original_device)  # 立即恢复原设备
+        
+        xpool_sim_matrix = sim_matrix_training(query_feats , cross_feats,'max') #(B,B)对比矩阵
+        sim_q2t = xpool_sim_matrix.cpu().numpy()
+        #---------------------------------
+        # sim_q2t = (query_feats @ tar_img_feats.t()).cpu().numpy()
+        
 
         # Add zeros where ref_img_id == tar_img_id
         for i in range(len(ref_img_ids)):

@@ -5,11 +5,11 @@ fashioniq-dress:
   batch_size: ${machine.batch_size}
   num_workers: ${machine.num_workers}
 
-  annotation: ${paths.work_dir}/annotation/fashion-iq/cap.dress.val.json
-  targets: ${paths.work_dir}/annotation/fashion-iq/split.dress.val.json
+  annotation: /media/bd/PSSD1/datasets/annotation/fashion-iq/cap.dress.val.json
+  targets: /media/bd/PSSD1/datasets/annotation/fashion-iq/split.dress.val.json
 
-  img_dirs: ${paths.datasets_dir}/fashion-iq/images/
-  emb_dirs: ${paths.datasets_dir}/fashion-iq/${model.basemodel}-embs-large/
+  img_dirs: /media/bd/PSSD1/datasets/fashion-iq/images/
+  emb_dirs: /media/bd/PSSD1/datasets/fashion-iq/blip2-embs-large/
 
   image_size: ${model.ckpt.image_size}
 

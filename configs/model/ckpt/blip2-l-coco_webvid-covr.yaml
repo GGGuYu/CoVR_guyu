@@ -1,0 +1,11 @@
+name: blip2-l-coco_webvid-covr
+
+# path: ${paths.work_dir}/outputs/webvid-covr/blip2-coco/blip2-l-coco/tv-False_loss-xpool_hn_nce_lr-1e-05/base/ckpt_best.ckpt
+# path: ${paths.work_dir}/outputs/webvid-covr/blip2-coco/blip2-l-coco/best/now/guide_16mask_web.ckpt
+path: ${paths.work_dir}/outputs/webvid-covr/blip2-coco/blip2-l-coco/best/now/softmax_fix/m2_webvid_16_n_best.ckpt
+# path: ${paths.work_dir}/outputs/cirr/origin/cirr_ft-coir.ckpt
+# path: ${paths.work_dir}/outputs/webvid-covr/blip2-coco/blip2-l-coco/best/now/ckpt_cirr_last.ckpt
+# path: ${paths.work_dir}/outputs/covr2_model/webvid-covr.ckpt
+# path: ${paths.work_dir}/outputs/webvid-covr/blip2-coco/blip2-l-coco/tv-False_loss-crossmodal_hn_nce_lr-1e-05/base/ckpt_best.ckpt
+image_size: 364
+# 883e5e8bfdd0

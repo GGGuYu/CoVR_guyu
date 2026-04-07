@@ -2,6 +2,7 @@ default_root_dir: ${paths.output_dir}
 
 max_epochs: 5
 
+
 accelerator: gpu
 devices: 1
 
@@ -14,7 +15,8 @@ precision: "32-true"
 
 log_interval: 1
 print_interval: 10
-save_ckpt: all
+# save_ckpt: all
+save_ckpt: best
 
 fabric:
   _target_: lightning.Fabric

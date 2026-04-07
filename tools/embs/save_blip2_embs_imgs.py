@@ -42,7 +42,7 @@ def main(args):
         dataset,
         batch_size=args.batch_size,
         shuffle=False,
-        pin_memory=True,
+        pin_memory=False,
         num_workers=args.num_workers,
     )
 

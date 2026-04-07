@@ -39,7 +39,7 @@ def main(ann_dir: str):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-d", "--fiq_dir", default="annotation/fashion-iq", help="Fashion IQ directory.")
+    parser.add_argument("-d", "--fiq_dir", default="/media/bd/PSSD/datasets/annotation/fashion-iq", help="Fashion IQ directory.")
     args = parser.parse_args()
 
     main(args.fiq_dir)

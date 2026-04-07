@@ -1,7 +1,9 @@
 name: server
 
 # specific attributes to this machine
-batch_size: 512
+batch_size: 64
+# batch_size: 128 # cirr test
+# batch_size: 2 #调试
 num_workers: 8
 
 defaults:

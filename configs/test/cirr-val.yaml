@@ -9,9 +9,9 @@ cirr-val:
   batch_size: ${machine.batch_size}
   num_workers: ${machine.num_workers}
 
-  annotation: ${paths.work_dir}/annotation/cirr/cap.rc2.val.json
-  img_dirs: ${paths.datasets_dir}/CIRR/images/dev
-  emb_dirs: ${paths.datasets_dir}/CIRR/${model.basemodel}-embs-large/dev
+  annotation: /media/bd/PSSD/datasets/annotation/cirr/cap.rc2.val.json
+  img_dirs: /media/bd/PSSD/datasets/CIRR/images/dev
+  emb_dirs: /media/bd/PSSD/datasets/CIRR/blip2-embs-large/dev
 
   image_size: ${model.ckpt.image_size}
 

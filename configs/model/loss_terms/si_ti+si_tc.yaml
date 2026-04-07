@@ -1,5 +1,13 @@
+# # Source image to target image/video loss weight
+# si_ti_weight: 0.5
+
+# # Source image to target image/video caption loss weight
+# si_tc_weight: 0.5
+
+#-----------------------------------------------------------
+#改动 为了我的diff_feat
 # Source image to target image/video loss weight
-si_ti_weight: 0.5
+si_ti_weight: 1
 
 # Source image to target image/video caption loss weight
 si_tc_weight: 0.5

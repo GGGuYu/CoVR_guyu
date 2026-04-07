@@ -3,3 +3,7 @@ _partial_: true
 
 lr: 1e-05
 weight_decay: 0.05
+
+# lr: 1e-05
+# weight_decay: 0.03  #因为训练效果先升后降，因此考虑减小weight_decay
+

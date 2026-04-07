@@ -10,7 +10,9 @@ work_dir: ${hydra:runtime.cwd}
 output_dir: ${hydra:runtime.output_dir}
 
 # path to dataset directory
-datasets_dir: ${hydra:runtime.cwd}/datasets/
+# datasets_dir: ${hydra:runtime.cwd}/datasets/
+# datasets_dir: /media/bd/PSSD/datasets/
+datasets_dir: /stu2024new/ygy/datasets/
 
 # path to logging directory
 log_dir: ${paths.root_dir}/logs/

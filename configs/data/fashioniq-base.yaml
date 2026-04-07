@@ -1,6 +1,6 @@
 dataname: fashioniq-${data.category}
 _target_: src.data.fashioniq.FashionIQDataModule
-
+pin_memory: False
 # Paths
 dataset_dir: ${paths.datasets_dir}/fashion-iq
 
@@ -8,20 +8,20 @@ batch_size: ${machine.batch_size}
 num_workers: ${machine.num_workers}
 
 annotation:
-  train: ${paths.work_dir}/annotation/fashion-iq/cap.${data.category}.train.json
-  val: ${paths.work_dir}/annotation/fashion-iq/cap.${data.category}.val.json
+  train: /media/bd/PSSD1/datasets/annotation/fashion-iq/cap.${data.category}.train.json
+  val: /media/bd/PSSD1/datasets/annotation/fashion-iq/cap.${data.category}.val.json
 
 targets:
-  train: ${paths.work_dir}/annotation/fashion-iq/split.${data.category}.train.json
-  val: ${paths.work_dir}/annotation/fashion-iq/split.${data.category}.val.json
+  train: /media/bd/PSSD1/datasets/annotation/fashion-iq/split.${data.category}.train.json
+  val: /media/bd/PSSD1/datasets/annotation/fashion-iq/split.${data.category}.val.json
 
 img_dirs:
-  train: ${data.dataset_dir}/images/
-  val: ${data.dataset_dir}/images/
+  train: /media/bd/PSSD1/datasets/fashion-iq/images/
+  val: /media/bd/PSSD1/datasets/fashion-iq/images/
 
 emb_dirs:
-  train: ${data.dataset_dir}/${model.basemodel}-embs-large/
-  val: ${data.dataset_dir}/${model.basemodel}-embs-large/
+  train: /media/bd/PSSD1/datasets/fashion-iq/blip2-embs-large/
+  val: /media/bd/PSSD1/datasets/fashion-iq/blip2-embs-large/
 
 image_size: ${model.ckpt.image_size}
 

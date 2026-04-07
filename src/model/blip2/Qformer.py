@@ -961,8 +961,31 @@ class BertLMHeadModel(BertPreTrainedModel):
 
         self.bert = BertModel(config, add_pooling_layer=False)
         self.cls = BertOnlyMLMHead(config)
-
+        #改动
+        #-------------------------------------------------------------
+        # 新增可学习查询token
+        self.query_tokens_long_text = nn.Parameter(
+            torch.zeros(1, config.query_length, config.hidden_size)
+        )
+        #测试新参数初始化(如果有效果，之后再解耦)
+        self.query_tokens_long_text.data.normal_(mean=0.0, std=config.initializer_range)
+        #-------------------------------------------------------------
         self.init_weights()
+
+        #代理增强原Qformer，可通过此方法，调用对新的查询向量的处理
+        #融合新文本和图像的特征
+    def process_with_long_text(self, input_ids, encoder_hidden_states, attention_mask,encoder_attention_mask,**kwargs):
+        """复用原有bert参数处理新查询，确保整体参数量不要太大"""
+        # 使用原有embedding层处理输入
+        outputs = self.bert(
+            input_ids=input_ids,#确保是和以前相同的token化方式
+            query_embeds=self.query_tokens_long_text.expand(input_ids.shape[0], -1, -1),#新的查询向量
+            attention_mask=attention_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            encoder_attention_mask=encoder_attention_mask,  # [bs, 677]
+            **kwargs
+        )
+        return outputs
 
     def get_output_embeddings(self):
         return self.cls.predictions.decoder

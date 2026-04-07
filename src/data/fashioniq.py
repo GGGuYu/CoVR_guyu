@@ -17,7 +17,7 @@ class FashionIQDataModule(LightningDataModule):
         self,
         batch_size: int,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         annotation: dict = {"train": "", "val": ""},
         targets: dict = {"train": "", "val": ""},
         img_dirs: dict = {"train": "", "val": ""},
@@ -82,7 +82,7 @@ class FashionIQTestDataModule(LightningDataModule):
         img_dirs: str,
         emb_dirs: str,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         image_size: int = 384,
         **kwargs,  # type: ignore
     ) -> None:

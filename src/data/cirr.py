@@ -17,7 +17,7 @@ class CIRRDataModule(LightningDataModule):
         self,
         batch_size: int,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         annotation: dict = {"train": "", "val": ""},
         img_dirs: dict = {"train": "", "val": ""},
         emb_dirs: dict = {"train": "", "val": ""},
@@ -83,7 +83,7 @@ class CIRRTestDataModule(LightningDataModule):
         img_dirs: str,
         emb_dirs: str,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         image_size: int = 384,
         split: str = "test",
         **kwargs,  # type: ignore
@@ -156,8 +156,11 @@ class CIRRDataset(Dataset):
             self.pairid2tar = None
 
         if split == "train":
-            img_pths = self.img_dir.glob("*/*.png")
-            emb_pths = self.emb_dir.glob("*/*.pth")
+            # img_pths = self.img_dir.glob("*/*.png")
+            # emb_pths = self.emb_dir.glob("*/*.pth")
+            # ==== 改动 ========todo 因为原文我无法访问到train下的文件
+            img_pths = self.img_dir.glob("*.png")
+            emb_pths = self.emb_dir.glob("*.pth")
         else:
             img_pths = self.img_dir.glob("*.png")
             emb_pths = self.emb_dir.glob("*.pth")
