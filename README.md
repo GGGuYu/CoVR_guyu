@@ -66,8 +66,10 @@ python -m pip install -r requirements.txt
 
 ## 📊 Datasets
 
+We evaluate Q-SlotSelect on three compositional retrieval benchmarks:
+
 ### WebVid-CoVR
-The primary dataset for training and evaluation.
+The primary dataset for training and evaluation. Contains ~1.6M video-text-video triplets.
 
 ```bash
 # Download annotations
@@ -79,22 +81,21 @@ ln -s /path/to/your/datasets/folder datasets
 python tools/scripts/download_covr.py --split=train  # or val, test
 ```
 
-### Zero-shot Evaluation Datasets
+### CIRR (Composed Image Retrieval on Real-life images)
+Contains 27k real-world images with complex attribute interactions.
 
-**CIRR** (Composed Image Retrieval on Real-life images):
 ```bash
 bash tools/scripts/download_annotation.sh cirr
 # Follow instructions at https://github.com/lil-lab/nlvr/tree/master/nlvr2#direct-image-download for images
 ```
 
-**FashionIQ** (Fashion Image Retrieval and Query modification):
+### FashionIQ (Fashion Image Retrieval and Query modification)
+Fashion product retrieval across three categories (Dress, Shirt, Toptee).
+
 ```bash
 bash tools/scripts/download_annotation.sh fiq
 # Download images from https://github.com/hongwang600/fashion-iq-metadata/tree/master/image_url
 ```
-
-**CIRCO** (Composed Image Retrieval for Complex Objects):
-Follow the structure in [CIRCO repository](https://github.com/miccunifi/CIRCO.git).
 
 ## 🚀 Usage
 
@@ -106,7 +107,11 @@ Please add training and evaluation commands after finalizing the implementation.
 
 ## 📈 Results
 
-### WebVid-CoVR Test Set
+### Main Results
+
+**Implementation Details**: We use L=32 learnable query tokens in the Q-Former. The Top-K parameter k is set to 16 for WebVid-CoVR and FashionIQ, and k=24 for CIRR based on sensitivity analysis. All models are built upon BLIP-2 with frozen ViT-L visual encoder pretrained on COCO.
+
+### WebVid-CoVR Test Set (In-domain)
 
 | Method | R@1 | R@5 | R@10 | R@50 |
 |--------|-----|-----|------|------|
@@ -117,9 +122,11 @@ Please add training and evaluation commands after finalizing the implementation.
 | HUD | 63.38 | 86.93 | 92.29 | 98.76 |
 | **Q-SlotSelect (Ours)** | **63.72** | **86.76** | **92.68** | **98.92** |
 
-**Improvement**: +3.9% R@1 over CoVR-BLIP2 baseline
+**Improvement**: +3.90 points R@1 over CoVR-BLIP2 baseline (59.82 → 63.72)
 
-### FashionIQ (Zero-shot)
+### FashionIQ (Fine-tuned)
+
+Results after training on FashionIQ training set (k=16):
 
 | Category | R@10 | R@50 |
 |----------|------|------|
@@ -128,9 +135,11 @@ Please add training and evaluation commands after finalizing the implementation.
 | Toptee | 57.06 | 77.77 |
 | **Average** | **54.23** | **74.57** |
 
-**Improvement**: +5.37% Average R@10 over CoVR-BLIP2 baseline (48.86 → 54.23)
+**Improvement**: +5.37 points Average R@10 over CoVR-BLIP2 baseline without additional pretraining (48.86 → 54.23)
 
-### CIRR (Zero-shot)
+### CIRR (Fine-tuned)
+
+Results after training on CIRR training set (k=24):
 
 | Recall@K | R@1 | R@5 | R@10 | R@50 |
 |----------|-----|-----|------|------|
@@ -140,15 +149,19 @@ Please add training and evaluation commands after finalizing the implementation.
 |-------------|-----|-----|-----|
 | Subset | 78.79 | 91.16 | 96.48 |
 
-**Improvement**: +1.23% R@1 and +2.09% R(subset)@1 over CoVR-BLIP2 baseline
+**Improvement**: +1.23 points R@1 and +2.09 points R(subset)@1 over CoVR-BLIP2 baseline without additional pretraining (50.87 → 52.10, 76.70 → 78.79)
 
 ## 🔬 Key Findings
 
-1. **In-domain Performance**: Query-guided specialization significantly improves retrieval accuracy on training domain (WebVid-CoVR).
+1. **In-domain Performance**: Query-guided slot selection (k=16) achieves 63.72% R@1 on WebVid-CoVR, outperforming static mean-pooling baseline (59.82%) by 3.90 points.
 
-2. **Cross-domain Trade-off**: Enhanced in-domain accuracy may incur trade-offs in cross-domain zero-shot transferability.
+2. **Dataset-Specific Training**: Models trained separately on FashionIQ and CIRR (not zero-shot transferred from WebVid-CoVR) achieve strong performance with consistent improvements over baselines.
 
-3. **Interpretability**: Attention visualization reveals that Q-SlotSelect effectively highlights query-relevant semantic slots while suppressing noise.
+3. **Top-K Sensitivity**: Optimal k varies by dataset—k=16 for WebVid-CoVR/FashionIQ, k=24 for CIRR—reflecting differences in semantic distribution complexity.
+
+4. **Ablation Validation**: Dynamic query-guided pooling (QueryPool) provides substantial gains over static mean-pooling; adding Top-K hard masking (QSS) further improves performance by suppressing irrelevant slots.
+
+5. **Interpretability**: Attention visualization confirms that Q-SlotSelect effectively highlights query-relevant semantic slots while suppressing noise from irrelevant visual content.
 
 ## 📁 Repository Structure
 
